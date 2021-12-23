@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elastic-configmap
+  labels:
+    chart: "{{ .Chart.Name }}"
+    app: "{{ .Values.global.name }}"
+data:
+  elasticsearch : |
+  {{- include "elasticsearch" . | nindent 4}}
+  jvm.options: |
+  {{- include "jvm.options" . | nindent 4}}
+  elasticsearch.yml: |
+  {{- include "elasticsearch.yml" . | nindent 4}}
+  log4j2.properties: |
+  {{- include "log4j2.properties" . | nindent 4}}

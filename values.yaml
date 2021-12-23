@@ -1,0 +1,77 @@
+global:
+  namespace: apidoc
+  name: apidoc-elasticdb
+  image: IMAGE
+
+replicas: 1
+
+strategy:
+   type: RollingUpdate
+   rollingUpdate:
+     maxSurge: 0
+     maxUnavailable: 1
+
+service:
+  type: ClusterIP
+  protocol: TCP
+  httpPort: 9200
+  transportPort: 9300
+
+env:
+  - name: discovery.type
+    value: single-node
+  
+volumeMounts:
+- mountPath: /tmp
+  name: vol1
+  subPath: tmp
+- mountPath: /usr/share/elasticsearch/logs
+  name: elastic-logs
+  subPath: logs
+- mountPath: /usr/share/elasticsearch/data
+  name: elastic-data
+  subPath: data
+- mountPath: /usr/share/elasticsearch/config/jvm.options
+  name: vol2
+  subPath: jvm.options
+- mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+  name: vol2
+  subPath: elasticsearch.yml
+- mountPath: /usr/share/elasticsearch/config/log4j2.properties
+  name: vol2
+  subPath: log4j2.properties
+- mountPath: /usr/share/elasticsearch/config
+  name: vol3
+
+volumes:
+- name: elastic-logs
+  persistentVolumeClaim:
+    claimName: apidoc-elasticdb-logs
+- name: elastic-data
+  persistentVolumeClaim:
+    claimName: apidoc-elasticdb-data
+- emptyDir: {}
+  name: vol1
+- name: vol2
+  configMap:
+    defaultMode: 0644
+    name: elastic-configmap
+    items:
+    - key: jvm.options
+      path: jvm.options
+    - key: elasticsearch.yml
+      path: elasticsearch.yml
+    - key: log4j2.properties
+      path: log4j2.properties
+- emptyDir: {}
+  name: vol3
+
+securityContext:
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "elastic"

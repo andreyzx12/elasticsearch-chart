@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Values.global.namespace }}
+  name: {{ .Values.global.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.global.name }}
+spec:
+  {{- with .Values.strategy }}
+  strategy:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  selector: 
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.global.name }}
+  replicas: {{ .Values.replicas }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.global.name }}
+    spec:
+      containers:
+      - env: {{ toYaml .Values.env | nindent 8 }}
+        image: {{ .Values.global.image }}
+        imagePullPolicy: Always
+        name: apidoc-elasticdb
+        ports:
+        - containerPort: {{ .Values.service.httpPort }}
+          name: http
+          protocol: {{ .Values.service.protocol }}
+        - containerPort: {{ .Values.service.transportPort }}
+          name: transport
+          protocol: {{ .Values.service.protocol }}
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "512m"
+          limits:
+            memory: "1024Mi"
+            cpu: "1024m"
+        securityContext: {{ toYaml .Values.securityContext | nindent 10 }}
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+        volumeMounts: {{ toYaml .Values.volumeMounts | nindent 8 }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes: {{ toYaml .Values.volumes | nindent 6 }}

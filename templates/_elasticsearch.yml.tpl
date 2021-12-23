@@ -1,0 +1,4 @@
+{{- define "elasticsearch.yml" -}}
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+{{- end }}
